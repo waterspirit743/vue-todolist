@@ -2,11 +2,14 @@
 import InputText from 'primevue/inputtext'
 import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
+import ScrollPanel from 'primevue/scrollpanel'
 
 import { ref, shallowRef, triggerRef } from 'vue'
 import { Button } from 'primevue'
+import { title } from '@primeuix/themes/aura/card'
+import TodoListItem from '@/components/TodoListItem.vue'
 const newTodoText = ref('')
-type TodoItem = {
+export type TodoItem = {
   title: string
   detail: string
   favorite: boolean
@@ -48,9 +51,19 @@ function addTodoItem() {
         @click="addTodoItem"
       />
     </IconField>
-    <div class="flex flex-col grow bg-#0E5331 rounded-2 px-5 py-3 items-center justify-center">
+
+    <ScrollPanel
+      class="grow rounded-2 overflow-hidden"
+      :pt="{
+        content: {
+          class: 'flex flex-col bg-#0E5331  items-center justify-center',
+        },
+      }"
+    >
       <span v-if="todoList.length === 0" class="text-#E9FFFC">無代辦事項</span>
-      <span v-else class="text-#E9FFFC">有代辦事項</span>
-    </div>
+      <span v-else class="text-#E9FFFC flex flex-col grow gap-2.5 w-full px-5 py-3">
+        <TodoListItem v-for="item in todoList" :todo-item="item" @click="" />
+      </span>
+    </ScrollPanel>
   </div>
 </template>
