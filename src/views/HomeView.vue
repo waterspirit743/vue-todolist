@@ -1,21 +1,31 @@
 <script setup lang="ts">
 import InputText from 'primevue/inputtext'
 import IconField from 'primevue/iconfield'
-import InputIcon from 'primevue/inputicon'
 import ScrollPanel from 'primevue/scrollpanel'
 
-import { ref, shallowRef, triggerRef } from 'vue'
+import { computed, ref } from 'vue'
 import { Button } from 'primevue'
-import { title } from '@primeuix/themes/aura/card'
 import TodoListItem from '@/components/TodoListItem.vue'
-import { watch } from 'vue'
+
 const newTodoText = ref('')
 export type TodoItem = {
   title: string
   detail: string
   favorite: boolean
 }
-const todoList = shallowRef<TodoItem[]>([])
+const todoList = ref<TodoItem[]>([])
+
+const sortedTodoList = computed(() => {
+  return [...todoList.value].sort((a, b) => {
+    if (a.favorite === b.favorite) {
+      return 0
+    }
+    if (a.favorite) {
+      return -1
+    }
+    return 1
+  })
+})
 
 function addTodoItem() {
   if (newTodoText.value.trim() === '') return
@@ -24,19 +34,12 @@ function addTodoItem() {
     detail: '',
     favorite: false,
   })
-  triggerRef(todoList)
+
   newTodoText.value = ''
 }
 function handleChangeFavorite(itemToToggle: TodoItem) {
-  console.log(itemToToggle.favorite)
-
   itemToToggle.favorite = !itemToToggle.favorite
-  console.log(itemToToggle.favorite)
-  console.log(todoList.value)
-
-  todoList.value = [...todoList.value]
 }
-watch(todoList, () => console.log('triggered'))
 </script>
 
 <template>
@@ -72,14 +75,14 @@ watch(todoList, () => console.log('triggered'))
       }"
     >
       <span v-if="todoList.length === 0" class="text-#E9FFFC">無代辦事項</span>
-      <span v-else class="text-#E9FFFC flex flex-col grow gap-2.5 w-full px-5 py-3">
+      <div v-else class="text-#E9FFFC flex flex-col grow gap-2.5 w-full px-5 py-3">
         <TodoListItem
-          v-for="item in todoList"
+          v-for="item in sortedTodoList"
           :key="item.title"
           :todo-item="item"
           @change-favorite="handleChangeFavorite"
         />
-      </span>
+      </div>
     </ScrollPanel>
   </div>
 </template>
