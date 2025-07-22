@@ -40,6 +40,10 @@ function addTodoItem() {
 function handleChangeFavorite(itemToToggle: TodoItem) {
   itemToToggle.favorite = !itemToToggle.favorite
 }
+
+function handleDeleteItem(itemToDelete: TodoItem) {
+  todoList.value = todoList.value.filter((item) => item.title !== itemToDelete.title)
+}
 </script>
 
 <template>
@@ -81,6 +85,7 @@ function handleChangeFavorite(itemToToggle: TodoItem) {
           :key="item.title"
           :todo-item="item"
           @change-favorite="handleChangeFavorite"
+          @delete-item="handleDeleteItem"
         />
       </div>
     </ScrollPanel>

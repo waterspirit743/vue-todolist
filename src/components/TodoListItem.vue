@@ -7,7 +7,7 @@
         @click="changeFavorite"
       ></i>
       <span class="flex grow text-black">{{ todoItem.title }}</span>
-      <i class="pi pi-trash text-#FFB5B5 !text-5.5"></i>
+      <i class="pi pi-trash text-#FFB5B5 !text-5.5" @click="removeItem"></i>
     </span>
     <span class="flex op-40 gap-2.5 justify-end items-center px-3">
       <i class="pi pi-file text-black !text-3.75"></i>
@@ -24,10 +24,14 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'change-favorite': [TodoItem]
-  'delete-item': []
+  'delete-item': [TodoItem]
 }>()
 
 function changeFavorite() {
   emit('change-favorite', props.todoItem)
+}
+
+function removeItem() {
+  emit('delete-item', props.todoItem)
 }
 </script>
