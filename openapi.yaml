@@ -1,0 +1,396 @@
+openapi: 3.0.3
+info:
+  title: Simple Todo List API
+  description: A RESTful API for managing todo items
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@todolist.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:5000/api/v1
+    description: Development server
+  - url: https://api.todolist.com/v1
+    description: Production server
+
+paths:
+  /todos:
+    get:
+      summary: View all todos
+      description: Retrieve a list of all todo items
+      operationId: getTodos
+      tags:
+        - Todos
+      parameters:
+        - name: status
+          in: query
+          description: Filter todos by favorite status
+          required: false
+          schema:
+            type: string
+            enum: [favorite, not-favorite, all]
+            default: all
+        - name: limit
+          in: query
+          description: Maximum number of todos to return
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          description: Number of todos to skip for pagination
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Successfully retrieved todos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  todos:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Todo'
+                  total:
+                    type: integer
+                    description: Total number of todos
+                  limit:
+                    type: integer
+                    description: Number of todos per page
+                  offset:
+                    type: integer
+                    description: Number of todos skipped
+              examples:
+                todos_list:
+                  summary: Example todos list
+                  value:
+                    todos:
+                      - id: 1
+                        title: 'Buy groceries'
+                        detail: 'Get milk, bread, and eggs'
+                        favorite: false
+                        created_at: '2025-07-22T10:00:00Z'
+                        updated_at: '2025-07-22T10:00:00Z'
+                      - id: 2
+                        title: 'Finish project'
+                        detail: 'Complete the todo list API'
+                        favorite: true
+                        created_at: '2025-07-21T09:00:00Z'
+                        updated_at: '2025-07-22T14:30:00Z'
+                    total: 2
+                    limit: 20
+                    offset: 0
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      summary: Add a new todo
+      description: Create a new todo item
+      operationId: createTodo
+      tags:
+        - Todos
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TodoCreate'
+            examples:
+              new_todo:
+                summary: Example new todo
+                value:
+                  title: 'Learn OpenAPI'
+                  detail: 'Study OpenAPI specification and best practices'
+                  favorite: false
+      responses:
+        '201':
+          description: Todo created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Todo'
+              examples:
+                created_todo:
+                  summary: Created todo
+                  value:
+                    id: 3
+                    title: 'Learn OpenAPI'
+                    detail: 'Study OpenAPI specification and best practices'
+                    favorite: false
+                    created_at: '2025-07-22T15:00:00Z'
+                    updated_at: '2025-07-22T15:00:00Z'
+        '400':
+          description: Bad request - invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /todos/{id}:
+    get:
+      summary: Get a specific todo
+      description: Retrieve a specific todo item by its ID
+      operationId: getTodoById
+      tags:
+        - Todos
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier of the todo
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: Successfully retrieved todo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Todo'
+        '404':
+          description: Todo not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      summary: Edit a todo
+      description: Update an existing todo item
+      operationId: updateTodo
+      tags:
+        - Todos
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier of the todo to update
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TodoUpdate'
+            examples:
+              update_todo:
+                summary: Example todo update
+                value:
+                  title: 'Buy groceries (updated)'
+                  detail: 'Get milk, bread, eggs, and cheese'
+                  favorite: true
+      responses:
+        '200':
+          description: Todo updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Todo'
+        '400':
+          description: Bad request - invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Todo not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Delete a todo
+      description: Remove a todo item from the list
+      operationId: deleteTodo
+      tags:
+        - Todos
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The unique identifier of the todo to delete
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '204':
+          description: Todo deleted successfully
+        '404':
+          description: Todo not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Todo:
+      type: object
+      required:
+        - id
+        - title
+        - favorite
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: integer
+          description: Unique identifier for the todo
+          example: 1
+        title:
+          type: string
+          description: The todo title
+          maxLength: 200
+          example: 'Buy groceries'
+        detail:
+          type: string
+          description: Detailed description of the todo
+          maxLength: 1000
+          example: 'Get milk, bread, and eggs from the store'
+        favorite:
+          type: boolean
+          description: Whether the todo is marked as favorite
+          default: false
+          example: false
+        created_at:
+          type: string
+          format: date-time
+          description: When the todo was created
+          example: '2025-07-22T10:00:00Z'
+        updated_at:
+          type: string
+          format: date-time
+          description: When the todo was last updated
+          example: '2025-07-22T10:00:00Z'
+
+    TodoCreate:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          description: The todo title
+          maxLength: 200
+          example: 'Learn OpenAPI'
+        detail:
+          type: string
+          description: Detailed description of the todo
+          maxLength: 1000
+          example: 'Study OpenAPI specification and best practices'
+        favorite:
+          type: boolean
+          description: Whether the todo is marked as favorite
+          default: false
+          example: false
+
+    TodoUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+          description: The todo title
+          maxLength: 200
+          example: 'Buy groceries (updated)'
+        detail:
+          type: string
+          description: Detailed description of the todo
+          maxLength: 1000
+          example: 'Get milk, bread, eggs, and cheese'
+        favorite:
+          type: boolean
+          description: Whether the todo is marked as favorite
+          example: true
+
+    Error:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error type
+          example: 'ValidationError'
+        message:
+          type: string
+          description: Human-readable error message
+          example: 'Title is required and cannot be empty'
+
+  responses:
+    NotFound:
+      description: The specified resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: 'NotFound'
+            message: 'Todo with id 999 not found'
+
+    BadRequest:
+      description: Bad request due to invalid input
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: 'ValidationError'
+            message: 'Title is required and cannot be empty'
+
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: 'InternalServerError'
+            message: 'An unexpected error occurred'
+
+tags:
+  - name: Todos
+    description: Operations related to todo management

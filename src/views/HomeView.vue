@@ -3,12 +3,17 @@ import InputText from 'primevue/inputtext'
 import IconField from 'primevue/iconfield'
 import ScrollPanel from 'primevue/scrollpanel'
 
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { Button } from 'primevue'
 import TodoListItem from '@/components/TodoListItem.vue'
+import { listAllTodos } from '@/libs/apis'
+onMounted(async () => {
+  console.log(await listAllTodos({ status: 'all' }))
+})
 
 const newTodoText = ref('')
 export type TodoItem = {
+  id: number
   title: string
   detail: string
   favorite: boolean
@@ -27,9 +32,15 @@ const sortedTodoList = computed(() => {
   })
 })
 
+let nextId = 1
+function generateId() {
+  return nextId++
+}
+
 function addTodoItem() {
   if (newTodoText.value.trim() === '') return
   todoList.value.push({
+    id: generateId(),
     title: newTodoText.value,
     detail: '',
     favorite: false,
@@ -42,7 +53,7 @@ function handleChangeFavorite(itemToToggle: TodoItem) {
 }
 
 function handleDeleteItem(itemToDelete: TodoItem) {
-  todoList.value = todoList.value.filter((item) => item.title !== itemToDelete.title)
+  todoList.value = todoList.value.filter((item) => item.id !== itemToDelete.id)
 }
 </script>
 
@@ -82,7 +93,7 @@ function handleDeleteItem(itemToDelete: TodoItem) {
       <div v-else class="text-#E9FFFC flex flex-col grow gap-2.5 w-full px-5 py-3">
         <TodoListItem
           v-for="item in sortedTodoList"
-          :key="item.title"
+          :key="item.id"
           :todo-item="item"
           @change-favorite="handleChangeFavorite"
           @delete-item="handleDeleteItem"
